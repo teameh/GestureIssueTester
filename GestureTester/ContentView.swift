@@ -7,58 +7,49 @@
 
 import SwiftUI
 
-struct Logo: Hashable {
-    var width: CGFloat
-    var height: CGFloat
-    var rotation: Double
-}
-
-struct ManipulationState: Equatable {
-    var magnification: Double?
-    var rotation: Double?
-}
-
-typealias RotateMagnifyGesture = SimultaneousGesture<RotateGesture, MagnifyGesture>
-
 struct ContentView: View {
-    @State var logo = Logo(
-        width: 200,
-        height: 200,
-        rotation: 0
-    )
+    struct ManipulationState: Equatable {
+        var magnification: CGFloat?
+        var rotation: Angle?
+    }
+
+    @State var rectangleWidth: CGFloat = 200.0
+    @State var rectangleHeight: CGFloat = 200.0
+    @State var rectangleRotation: CGFloat = 0
+
     @GestureState var state: ManipulationState? = nil
 
     var body: some View {
-        Image(uiImage: .swift)
-            .resizable()
-            .scaledToFit()
+        Rectangle()
+            .fill(.orange)
+            .shadow(radius: 10)
             .frame(
-                width: logo.width * (state?.magnification ?? 1),
-                height: logo.height * (state?.magnification ?? 1)
+                width: rectangleWidth * (state?.magnification ?? 1),
+                height: rectangleHeight * (state?.magnification ?? 1)
             )
-            .rotationEffect(.degrees(logo.rotation + (state?.rotation ?? 0)))
-            .gesture(gesture(logo: logo))
+            .rotationEffect(.degrees(rectangleRotation + (state?.rotation?.degrees ?? 0)))
+            .gesture(gesture)
             .onChange(of: state, { oldValue, newValue in
                 if oldValue == nil, let newValue {
-                    print("Gesture started \(newValue)")
+                    print("Gesture started nil -> (\(newValue))")
                 }
 
                 if let oldValue, let newValue {
-                    print("Gesture updated \(oldValue) -> \(newValue)")
+                    print("Gesture updated (\(oldValue)) -> (\(newValue))")
                 }
 
                 if let oldValue, newValue == nil {
-                    print("Gesture ended")
+                    print("Gesture ended, (\(oldValue)) -> nil")
                     gestureDidEnd(state: oldValue)
                 }
             })
     }
 
-    func gesture(logo: Logo) -> GestureStateGesture<RotateMagnifyGesture, ManipulationState?> {
-        let rotationGesture = RotateGesture(minimumAngleDelta: .degrees(5))
-        let magnifyGesture = MagnifyGesture(minimumScaleDelta: 0.1)
-        return rotationGesture
-            .simultaneously(with: magnifyGesture)
+    var gesture: GestureStateGesture<SimultaneousGesture<RotateGesture, MagnifyGesture>, ManipulationState?> {
+        SimultaneousGesture(
+            RotateGesture(minimumAngleDelta: .degrees(5)),
+            MagnifyGesture(minimumScaleDelta: 0.1)
+        )
             .updating($state) { value, state, transaction in
                 var rotation = value.first?.rotation
                 if let radians = rotation?.radians, radians.isNormal != true {
@@ -67,31 +58,31 @@ struct ContentView: View {
                 }
 
                 state = ManipulationState(
-                    magnification: value.second.map { Double($0.magnification) },
-                    rotation: rotation?.degrees
+                    magnification: value.second?.magnification,
+                    rotation: rotation
                 )
             }
     }
 
     func gestureDidEnd(state: ManipulationState) {
-        // Snap logo to 15 degrees
+        // Snap rectangle to 15 degrees
         if let rotation = state.rotation {
-            let totalRotation = logo.rotation + rotation
-            logo.rotation = totalRotation - totalRotation.remainder(dividingBy: 15)
+            let totalRotation = rectangleRotation + rotation.degrees
+            rectangleRotation = totalRotation - totalRotation.remainder(dividingBy: 15)
         }
 
         if let magnification = state.magnification {
-            logo.width = logo.width * magnification
-            logo.height = logo.height * magnification
+            rectangleWidth = rectangleWidth * magnification
+            rectangleHeight = rectangleHeight * magnification
         }
     }
 }
 
-extension ManipulationState: CustomStringConvertible {
+extension ContentView.ManipulationState: CustomStringConvertible {
     var description: String {
         [
             magnification.map { String(format: "magnify: %0.2f", $0) },
-            rotation.map { String(format: "rotate: %0.2f", $0) }
+            rotation.map { String(format: "rotate: %0.2f", $0.degrees) }
         ].compactMap { $0 }.joined(separator: ", ")
     }
 }
