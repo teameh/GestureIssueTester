@@ -1,0 +1,18 @@
+Normal output:
+
+  Model(rotation: SwiftUI.Angle(radians: -1.30753648308838), magnification: 0.43574921322930815)
+  Rotation onChange: -73.53067129217011 degrees
+  Magnification onChange: 0.45055391087887653
+  Rotation onChange: -74.15115728654324 degrees
+  Magnification onChange: 0.44599988151857844
+  Rotation ended at: -71.25021223329445 degrees
+  Magnification ended at: 0.4634703573232755
+  Model(rotation: SwiftUI.Angle(radians: 0.0), magnification: 1.0)
+
+Error output:
+
+  Magnification onChange: 0.5290044035864059
+  Magnification onChange: 0.5425571749335942
+  Model(rotation: SwiftUI.Angle(radians: 0.0), magnification: 0.5425571749335942)
+  Magnification onChange: 0.5331196116863035
+  Model(rotation: SwiftUI.Angle(radians: 0.0), magnification: 0.5331196116863035)
